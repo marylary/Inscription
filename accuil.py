@@ -3,7 +3,13 @@ from glob import glob
 from tkinter import *
 from tkinter.filedialog import askopenfilename
 from tkinter.messagebox import showerror, showinfo
-# from listedesinscrits import listeInscrit
+from listedesinscrits import listeInscrit
+from listedesinscrits import listeInscrit
+
+import service as serv
+from PIL import Image
+from datetime import datetime
+from uuid import uuid4
 
 # la classe personnage qui va nous permettre de creer une personne à partir de son nom prenom et photo
 class Personnage():
@@ -20,7 +26,7 @@ class Personnage():
 def parcourir():
     global imageName
     imn = askopenfilename(initialdir="/", title="Selectionner une image", 
-            filetypes=(( "png files","*.png"),( "jpeg files","*.jpeg")))
+            filetypes=(( "png files","*.png"),( "jpeg files","*.jpg")))
     
     # verifier si l'image existe
     
@@ -30,33 +36,36 @@ def parcourir():
         texte = imageName.split("/")
         photoEntre.configure(text=".../"+texte[-1])    
 
-# verifier si un utilisateur a ete ajouter 
-def appartient(liste,val):
-    for i in range(len(liste)):
-        if liste[i].__eq__(val):
-            return 1
-    return 0
+# verifier si un utilisateur a ete ajouter dans la liste
+# def appartient(liste,val):
+#     for i in range(len(liste)):
+#         if liste[i].__eq__(val):
+#             return 1
+#     return 0
 
 # la fontion valider
 def valider():
-    global listePersonne, imageName
-    # inisialiser
-    imageName = ''
-    listePersonne = []
-    photo = imageName
+    global  imageName
     # verifier si les champs ont ete bien renseigner
-    if prenomEntre.get() and nomEntre.get() and photo:
+    if ((prenomEntre.get()) and (nomEntre.get()) and imageName):
+        eventid = datetime.now().strftime('%Y-%m-%d-%H%M%S-') + str(uuid4())
+        # reccuperer le nom du ficiher et l'extension
+        photo = 'images/'+eventid+imageName.split("/")[-1]
         pers = Personnage(prenomEntre.get(),nomEntre.get(),photo)
-        
+        img = Image.open(imageName)
+        img.save(photo)
+        serv.ajouter(pers)
         # on verifie si la personne appartient a la liste
-        if appartient(listePersonne,pers):
-            showerror(title="Formulaire invalide", message="Desoler la personne existe deja!!")
-        else:
-            listePersonne.append(pers)
-            showinfo(title="Validation reussie", message="{} a bien ete ajouter".format(prenomEntre.get()))   
+        # if appartient(listePersonne,pers):
+        #     showerror(title="Formulaire invalide", message="Desoler la personne existe deja!!")
+        # else:
+        #     listePersonne.append(pers)
+        showinfo(title="Validation reussie", message="{} a bien ete ajouter".format(prenomEntre.get()))   
     else:
         showerror(title="Formulaire invalide", message="Touts les champs doivent être renseigner!!")
-        
+        # inisialiser
+# listePersonne = []
+imageName = ''
         # la fonction reinisialiser
 def reinisialiser():
     global imageName
@@ -69,7 +78,7 @@ def reinisialiser():
              
 fen = Tk()
 # taille et titre de la fenêtre
-fen.geometry("320x320+300+150")
+fen.geometry("300x320+300+150")
 fen.title("Page d'Inscription")
 
 # couleur, taille, texte...
@@ -92,14 +101,15 @@ nomEntre = Entry(contenu, font=fontEntre)
 photoEntre = Label(contenu, text="Aucune image selectionner", font = "Arial 7 bold", fg="white", bg="#ff7800")
 buttonPacourir = Button(contenu, text="Pr", command=parcourir, fg="#ff7800", bg="white")
 
-# classer chaque partir
+# possitionner chaque partir
 #grid sépare ligne et colonne, columnspan c'est la fusion entre deux colonnes, sticky permet d'orienter vers une direction(E->l'EST)
 validation.grid(row=0, column=0, columnspan=2)
 prenom.grid(row=1, column=0, sticky=E, padx=5, pady=5)
 nom.grid(row=2, column=0, sticky=E, padx=5, pady=5)
 photo.grid(row=3, column=0, sticky=E, padx=5, pady=5)
+contenu.grid(row=0, column=0, padx=5, pady=5)
 
-#placer les entrer W->l'OUEST
+#positionner les entrer W->l'OUEST
 prenomEntre.grid(row=1, column=1, padx=5, pady=5)
 nomEntre.grid(row=2, column=1, padx=5, pady=5)
 photoEntre.grid(row=3, column=1, padx=5, pady=5, sticky=W)
@@ -108,15 +118,11 @@ buttonPacourir.grid(row=3, column=1, padx=5, pady=5, sticky=E)
 #  déclarrer les boutons et positionner les 
 b1 = Button(fen, text="Valider", command=valider, width=10, fg="white", bg="#ff7800")
 b2 = Button(fen, text="Reinisialiser", command=reinisialiser, width=10, fg="white", bg="#ff7800")
-b3 = Button(fen, text="Voir la liste", command="", width=10, fg="white", bg="#ff7800")
+b3 = Button(fen, text="Voir la liste", command=lambda: listeInscrit(fen), width=10, fg="white", bg="#ff7800")
 
 b1.grid(row=4, column=0, pady=5)
 b2.grid(row=5, column=0, pady=5)
 b3.grid(row=6, column=0, pady=5)
-
-# positionner le formulaire
-
-contenu.grid(row=0, column=0, padx=5, pady=5)
 
 # afficher la fenêtre
 
